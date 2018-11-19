@@ -15,7 +15,7 @@ connect(connectURL, { useNewUrlParser: true })
   logger.info({ message: 'Connected to MongoDB' });
 
   client = mongoClient;
-  db = client.db(process.env.MONOG_DB_NAME);
+  db = client.db(process.env.MONGO_DB_NAME);
 });
 
 export async function insertOne(

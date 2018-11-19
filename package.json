@@ -1,6 +1,6 @@
 {
   "name": "nodejs_express_boilerplate",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Boilerplate for a services based backend application in NodeJS.",
   "keywords": [
     "NodeJS",
