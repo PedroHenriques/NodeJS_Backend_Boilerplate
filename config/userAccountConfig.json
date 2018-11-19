@@ -1,0 +1,64 @@
+{
+  "domain": {
+    "localRootUrl": "http://localhost:9000/"
+  },
+
+  "accountRegistration": {
+    "tokenDurationInSeconds": 86400,
+
+    "email": {
+      "from": {
+        "name": "node_express_boilerplate",
+        "address": "node_express@boilerplate.com"
+      },
+
+      "subject": "Project Node Express Boilerplate - Account Activation"
+    },
+
+    "activationRelUrl": "activation/"
+  },
+
+  "accountActivation": {
+    "email": {
+      "from": {
+        "name": "node_express_boilerplate",
+        "address": "node_express@boilerplate.com"
+      },
+
+      "subject": "Project Node Express Boilerplate - Account Successfully Activated"
+    },
+
+    "loginRelUrl": "login/"
+  },
+
+  "login": {
+    "sessionDurationInSeconds": 21600,
+    "cookieName": "session"
+  },
+
+  "lostPassword": {
+    "tokenDurationInSeconds": 3600,
+
+    "email": {
+      "from": {
+        "name": "node_express_boilerplate",
+        "address": "node_express@boilerplate.com"
+      },
+
+      "subject": "Project Node Express Boilerplate - Password Recovery"
+    },
+
+    "pwResetRelUrl": "pwReset/"
+  },
+  
+  "resetPassword": {
+    "email": {
+      "from": {
+        "name": "node_express_boilerplate",
+        "address": "node_express@boilerplate.com"
+      },
+
+      "subject": "Project Node Express Boilerplate - Password Changed"
+    }
+  }
+}

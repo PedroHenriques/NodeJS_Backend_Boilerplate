@@ -1,0 +1,215 @@
+version: '3.7'
+
+services:
+  redis:
+    image: redis:4-alpine
+    container_name: redis
+    restart: on-failure
+    ports:
+      - "${REDIS_PORT}:6379"
+    command: redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      - ../redis/redis.dev.conf:/usr/local/etc/redis/redis.conf:ro
+    networks:
+      - backend
+
+  redis-commander:
+    image: rediscommander/redis-commander
+    container_name: redisCommander
+    restart: on-failure
+    depends_on:
+      - redis
+    ports:
+      - "${REDIS_CMDR_PORT}:8081"
+    networks:
+      - backend
+    environment:
+      - REDIS_HOSTS=local:${REDIS_HOST}:${REDIS_PORT}
+
+  mongodb:
+    image: mongo:4
+    container_name: mongoDb
+    restart: on-failure
+    ports:
+      - "${MONGO_PORT}:27017"
+    networks:
+      - backend
+
+  mongo-express:
+    image: mongo-express
+    container_name: mongoExpress
+    restart: on-failure
+    depends_on:
+      - mongodb
+    ports:
+      - "${MONGO_EXPRESS_PORT}:8081"
+    networks:
+      - backend
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=${MONGO_HOST}
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: mailhog
+    restart: on-failure
+    ports:
+      - "${MAILHOG_EMAIL_PORT}:1025"
+      - "${MAILHOG_GUI_PORT}:8025"
+    logging:
+      driver: 'none'
+    networks:
+      - backend
+  
+  configloader:
+    init: true
+    container_name: configLoader
+    restart: on-failure
+    build:
+      context: ../
+      dockerfile: ./docker/configLoader/Dockerfile-dev
+      args:
+        - NODE_ENV=development
+    depends_on:
+      - cache
+    command: nodemon -L --inspect=0.0.0.0:9229 ./dist/configLoader/index.js
+    volumes:
+      - ../dist/configLoader/:/src/dist/configLoader/
+      - ../dist/sharedLibs/:/src/dist/sharedLibs/
+      - ../config/:/src/dist/config/
+      - ../node_modules/:/src/node_modules/
+      - ../package.json:/src/package.json
+      - ../package-lock.json:/src/package-lock.json
+    networks:
+      - backend
+    environment:
+      - NODE_ENV=development
+      - DEPLOY_STAGE=local
+      - SLEEP_MS=${CONFIGLOADER_SLEEP_MS}
+      - CACHE_HOST=${CACHE_SOCKET_SERVER_HOST}
+      - CACHE_PORT=${CACHE_SOCKET_SERVER_PORT}
+
+  mailer:
+    init: true
+    container_name: mailer
+    restart: on-failure
+    build:
+      context: ../
+      dockerfile: ./docker/mailer/Dockerfile-dev
+      args:
+        - NODE_ENV=development
+    depends_on:
+      - mailhog
+    ports:
+      - "${MAILER_SOCKET_SERVER_PORT}:${MAILER_SOCKET_SERVER_PORT}"
+    command: nodemon -L --inspect=0.0.0.0:9229 ./dist/mailer/index.js
+    volumes:
+      - ../dist/mailer/:/src/dist/mailer/
+      - ../dist/sharedLibs/:/src/dist/sharedLibs/
+      - ../node_modules/:/src/node_modules/
+      - ../package.json:/src/package.json
+      - ../package-lock.json:/src/package-lock.json
+    networks:
+      - backend
+    environment:
+      - NODE_ENV=development
+      - DEPLOY_STAGE=local
+      - SOCKET_SERVER_PORT=${MAILER_SOCKET_SERVER_PORT}
+      - MAIL_HOST=${MAILHOG_HOST}
+      - MAIL_PORT=${MAILHOG_EMAIL_PORT}
+
+  cache:
+    init: true
+    container_name: cache
+    restart: on-failure
+    build:
+      context: ../
+      dockerfile: ./docker/cache/Dockerfile-dev
+      args:
+        - NODE_ENV=development
+    depends_on:
+      - redis
+    ports:
+      - "${CACHE_SOCKET_SERVER_PORT}:${CACHE_SOCKET_SERVER_PORT}"
+    command: nodemon -L --inspect=0.0.0.0:9229 ./dist/cache/index.js
+    volumes:
+      - ../dist/cache/:/src/dist/cache/
+      - ../dist/sharedLibs/:/src/dist/sharedLibs/
+      - ../node_modules/:/src/node_modules/
+      - ../package.json:/src/package.json
+      - ../package-lock.json:/src/package-lock.json
+    networks:
+      - backend
+    environment:
+      - NODE_ENV=development
+      - DEPLOY_STAGE=local
+      - SOCKET_SERVER_PORT=${CACHE_SOCKET_SERVER_PORT}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+
+  db:
+    init: true
+    container_name: db
+    restart: on-failure
+    build:
+      context: ../
+      dockerfile: ./docker/db/Dockerfile-dev
+      args:
+        - NODE_ENV=development
+    depends_on:
+      - mongodb
+    ports:
+      - "${DB_SOCKET_SERVER_PORT}:${DB_SOCKET_SERVER_PORT}"
+    command: nodemon -L --inspect=0.0.0.0:9229 ./dist/db/index.js
+    volumes:
+      - ../dist/db/:/src/dist/db/
+      - ../dist/sharedLibs/:/src/dist/sharedLibs/
+      - ../node_modules/:/src/node_modules/
+      - ../package.json:/src/package.json
+      - ../package-lock.json:/src/package-lock.json
+    networks:
+      - backend
+    environment:
+      - NODE_ENV=development
+      - DEPLOY_STAGE=local
+      - SOCKET_SERVER_PORT=${DB_SOCKET_SERVER_PORT}
+      - MONGO_HOST=${MONGO_HOST}
+      - MONGO_PORT=${MONGO_PORT}
+      - MONGO_DB_NAME=${MONGO_DB_NAME}
+  
+  webserver:
+    init: true
+    container_name: webServer
+    restart: on-failure
+    build:
+      context: ../
+      dockerfile: ./docker/webServer/Dockerfile-dev
+      args:
+        - NODE_ENV=development
+    depends_on:
+      - cache
+      - configloader
+      - mailer
+    ports:
+      - "${WEBSERVER_PORT}:${WEBSERVER_PORT}"
+    command: nodemon -L --inspect=0.0.0.0:9229 ./dist/webServer/index.js
+    volumes:
+      - ../dist/webServer/:/src/dist/webServer/
+      - ../dist/sharedLibs/:/src/dist/sharedLibs/
+      - ../node_modules/:/src/node_modules/
+      - ../package.json:/src/package.json
+      - ../package-lock.json:/src/package-lock.json
+    networks:
+      - backend
+    environment:
+      - NODE_ENV=development
+      - DEPLOY_STAGE=local
+      - PORT=${WEBSERVER_PORT}
+      - CACHE_HOST=${CACHE_SOCKET_SERVER_HOST}
+      - CACHE_PORT=${CACHE_SOCKET_SERVER_PORT}
+      - MAILER_HOST=${MAILER_SOCKET_SERVER_HOST}
+      - MAILER_PORT=${MAILER_SOCKET_SERVER_PORT}
+      - DB_HOST=${DB_SOCKET_SERVER_HOST}
+      - DB_PORT=${DB_SOCKET_SERVER_PORT}
+
+networks:
+  backend:

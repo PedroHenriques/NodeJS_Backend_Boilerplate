@@ -1,0 +1,144 @@
+version: '3.7'
+
+services:
+  redis:
+    image: redis:4-alpine
+    container_name: "boilerplate-redis-production"
+    restart: on-failure
+    command: redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      - ../logs/redis/:/usr/local/etc/redis/logs/
+      - ../redis/:/usr/local/etc/redis/
+    networks:
+      - backend
+
+  mongodb:
+    image: mongo:4
+    container_name: mongoDb
+    restart: on-failure
+    networks:
+      - backend
+
+  configloader:
+    init: true
+    container_name: "boilerplate-configLoader-production"
+    restart: on-failure
+    image: "TBD"
+    build:
+      context: ../
+      dockerfile: ./docker/configLoader/Dockerfile
+      args:
+        - NODE_ENV=production
+    depends_on:
+      - cache
+    networks:
+      - backend
+    environment:
+      - NODE_ENV=production
+      - DEPLOY_STAGE=production
+      - SLEEP_MS=${CONFIGLOADER_SLEEP_MS}
+      - CACHE_HOST=${CACHE_SOCKET_SERVER_HOST}
+      - CACHE_PORT=${CACHE_SOCKET_SERVER_PORT}
+
+  mailer:
+    init: true
+    container_name: "boilerplate-mailer-production"
+    restart: on-failure
+    image: "TBD"
+    build:
+      context: ../
+      dockerfile: ./docker/mailer/Dockerfile
+      args:
+        - NODE_ENV=production
+    ports:
+      - "${MAILER_SOCKET_SERVER_PORT}:${MAILER_SOCKET_SERVER_PORT}"
+    networks:
+      - backend
+    environment:
+      - NODE_ENV=production
+      - DEPLOY_STAGE=production
+      - SOCKET_SERVER_PORT=${MAILER_SOCKET_SERVER_PORT}
+      - MAIL_HOST=${MAILHOG_HOST}
+      - MAIL_PORT=${MAILHOG_EMAIL_PORT}
+
+  cache:
+    init: true
+    container_name: "boilerplate-cache-production"
+    restart: on-failure
+    image: "TBD"
+    build:
+      context: ../
+      dockerfile: ./docker/cache/Dockerfile
+      args:
+        - NODE_ENV=production
+    depends_on:
+      - redis
+    ports:
+      - "${CACHE_SOCKET_SERVER_PORT}:${CACHE_SOCKET_SERVER_PORT}"
+    networks:
+      - backend
+    environment:
+      - NODE_ENV=production
+      - DEPLOY_STAGE=production
+      - SOCKET_SERVER_PORT=${CACHE_SOCKET_SERVER_PORT}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+  
+  db:
+    init: true
+    container_name: "boilerplate-db-production"
+    restart: on-failure
+    image: "TBD"
+    build:
+      context: ../
+      dockerfile: ./docker/db/Dockerfile
+      args:
+        - NODE_ENV=production
+    depends_on:
+      - mongodb
+    ports:
+      - "${DB_SOCKET_SERVER_PORT}:${DB_SOCKET_SERVER_PORT}"
+    networks:
+      - backend
+    environment:
+      - NODE_ENV=production
+      - DEPLOY_STAGE=production
+      - SOCKET_SERVER_PORT=${DB_SOCKET_SERVER_PORT}
+      - MONGO_HOST=${MONGO_HOST}
+      - MONGO_PORT=${MONGO_PORT}
+      - MONGO_DB_NAME=${MONGO_DB_NAME}
+
+  webServer:
+    init: true
+    container_name: "boilerplate-webServer-production"
+    restart: on-failure
+    image: "TBD"
+    build:
+      context: ../
+      dockerfile: ./docker/webServer/Dockerfile
+      args:
+        - NODE_ENV=production
+    depends_on:
+      - cache
+      - configloader
+      - mailer
+    ports:
+      - "${WEBSERVER_PORT}:${WEBSERVER_PORT}"
+    volumes:
+      - ./logs/webServer/:/src/webServer/logs/
+      - ./frontend/:/src/webServer/frontend/
+    networks:
+      - backend
+    environment:
+      - NODE_ENV=production
+      - DEPLOY_STAGE=production
+      - PORT=${WEBSERVER_PORT}
+      - CACHE_HOST=${CACHE_SOCKET_SERVER_HOST}
+      - CACHE_PORT=${CACHE_SOCKET_SERVER_PORT}
+      - MAILER_HOST=${MAILER_SOCKET_SERVER_HOST}
+      - MAILER_PORT=${MAILER_SOCKET_SERVER_PORT}
+      - DB_HOST=${DB_SOCKET_SERVER_HOST}
+      - DB_PORT=${DB_SOCKET_SERVER_PORT}
+
+networks:
+  backend:

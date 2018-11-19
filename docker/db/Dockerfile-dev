@@ -1,0 +1,23 @@
+# escape=`
+
+FROM node:11-alpine
+
+# use the built-in "node" user from the nodejs image
+ENV USER=node
+
+WORKDIR /src/
+
+RUN mkdir -p /src/dist/
+
+# defaults to development, docker compose overrides this when needed
+ARG NODE_ENV=development
+ENV NODE_ENV $NODE_ENV
+
+# default to port 9229 for debug (nodemon) and 10002 for socker server
+EXPOSE 9229 10002
+
+ENV PATH node_modules/.bin:$PATH
+
+USER $USER
+
+CMD nodemon -L --inspect=0.0.0.0:9229 ./dist/db/server.js

@@ -1,0 +1,25 @@
+# escape=`
+
+FROM node:11-alpine
+
+# use the built-in "node" user from the nodejs image
+ENV USER=node
+
+WORKDIR /src/
+
+RUN mkdir -p /src/dist/
+
+# defaults to development, docker compose overrides this when needed
+ARG NODE_ENV=development
+ENV NODE_ENV $NODE_ENV
+
+# default to port 8000 for node, and 9229 for debug (nodemon)
+ARG PORT=8000
+ENV PORT $PORT
+EXPOSE $PORT 9229
+
+ENV PATH node_modules/.bin:$PATH
+
+USER $USER
+
+CMD nodemon -L --inspect=0.0.0.0:9229 ./dist/webServer/index.js
