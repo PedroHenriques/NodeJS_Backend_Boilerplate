@@ -32,8 +32,17 @@ services:
     restart: on-failure
     ports:
       - "${MONGO_PORT}:27017"
+    volumes:
+      - ../mongodb/scripts/:/docker-entrypoint-initdb.d/
     networks:
       - backend
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - MONGO_INITDB_DATABASE=${MONGO_DB_NAME}
+      - MONGO_APP_USER=${MONGO_DB_USER}
+      - MONGO_APP_PW=${MONGO_DB_PW}
+      - MONGO_APP_USER_AUTH_METHOD=${MONGO_DB_AUTH_METHOD}
 
   mongo-express:
     image: mongo-express
@@ -46,6 +55,8 @@ services:
     networks:
       - backend
     environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
       - ME_CONFIG_MONGODB_SERVER=${MONGO_HOST}
 
   mailhog:
@@ -71,11 +82,11 @@ services:
         - NODE_ENV=development
     depends_on:
       - cache
-    command: nodemon -L --inspect=0.0.0.0:9229 ./dist/configLoader/index.js
+    command: nodemon -L --inspect=0.0.0.0:9229 /src/configLoader/index.js
     volumes:
-      - ../dist/configLoader/:/src/dist/configLoader/
-      - ../dist/sharedLibs/:/src/dist/sharedLibs/
-      - ../config/:/src/dist/config/
+      - ../dist/configLoader/:/src/configLoader/
+      - ../dist/sharedLibs/:/src/sharedLibs/
+      - ../config/:/src/config/
       - ../node_modules/:/src/node_modules/
       - ../package.json:/src/package.json
       - ../package-lock.json:/src/package-lock.json
@@ -101,10 +112,10 @@ services:
       - mailhog
     ports:
       - "${MAILER_SOCKET_SERVER_PORT}:${MAILER_SOCKET_SERVER_PORT}"
-    command: nodemon -L --inspect=0.0.0.0:9229 ./dist/mailer/index.js
+    command: nodemon -L --inspect=0.0.0.0:9229 /src/mailer/index.js
     volumes:
-      - ../dist/mailer/:/src/dist/mailer/
-      - ../dist/sharedLibs/:/src/dist/sharedLibs/
+      - ../dist/mailer/:/src/mailer/
+      - ../dist/sharedLibs/:/src/sharedLibs/
       - ../node_modules/:/src/node_modules/
       - ../package.json:/src/package.json
       - ../package-lock.json:/src/package-lock.json
@@ -130,10 +141,10 @@ services:
       - redis
     ports:
       - "${CACHE_SOCKET_SERVER_PORT}:${CACHE_SOCKET_SERVER_PORT}"
-    command: nodemon -L --inspect=0.0.0.0:9229 ./dist/cache/index.js
+    command: nodemon -L --inspect=0.0.0.0:9229 /src/cache/index.js
     volumes:
-      - ../dist/cache/:/src/dist/cache/
-      - ../dist/sharedLibs/:/src/dist/sharedLibs/
+      - ../dist/cache/:/src/cache/
+      - ../dist/sharedLibs/:/src/sharedLibs/
       - ../node_modules/:/src/node_modules/
       - ../package.json:/src/package.json
       - ../package-lock.json:/src/package-lock.json
@@ -159,10 +170,12 @@ services:
       - mongodb
     ports:
       - "${DB_SOCKET_SERVER_PORT}:${DB_SOCKET_SERVER_PORT}"
-    command: nodemon -L --inspect=0.0.0.0:9229 ./dist/db/index.js
+    command: nodemon -L --inspect=0.0.0.0:9229 /src/db/index.js
     volumes:
-      - ../dist/db/:/src/dist/db/
-      - ../dist/sharedLibs/:/src/dist/sharedLibs/
+      - ../dist/db/:/src/db/
+      - ../dist/sharedLibs/:/src/sharedLibs/
+      - ../db/migrate-mongo-config.js:/src/db/migrate-mongo-config.js
+      - ../db/migrations:/src/db/migrations/
       - ../node_modules/:/src/node_modules/
       - ../package.json:/src/package.json
       - ../package-lock.json:/src/package-lock.json
@@ -172,8 +185,8 @@ services:
       - NODE_ENV=development
       - DEPLOY_STAGE=local
       - SOCKET_SERVER_PORT=${DB_SOCKET_SERVER_PORT}
-      - MONGO_HOST=${MONGO_HOST}
-      - MONGO_PORT=${MONGO_PORT}
+      - CONNECT_URL=mongodb://${MONGO_DB_USER}:${MONGO_DB_PW}@${MONGO_HOST}:${MONGO_PORT}/${MONGO_DB_NAME}?authMechanism=${MONGO_DB_AUTH_METHOD}
+      - MIGRATION_CONNECT_URL=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@${MONGO_HOST}:${MONGO_PORT}/admin?authMechanism=${MONGO_DB_AUTH_METHOD}
       - MONGO_DB_NAME=${MONGO_DB_NAME}
   
   webserver:
@@ -191,10 +204,10 @@ services:
       - mailer
     ports:
       - "${WEBSERVER_PORT}:${WEBSERVER_PORT}"
-    command: nodemon -L --inspect=0.0.0.0:9229 ./dist/webServer/index.js
+    command: nodemon -L --inspect=0.0.0.0:9229 /src/webServer/index.js
     volumes:
-      - ../dist/webServer/:/src/dist/webServer/
-      - ../dist/sharedLibs/:/src/dist/sharedLibs/
+      - ../dist/webServer/:/src/webServer/
+      - ../dist/sharedLibs/:/src/sharedLibs/
       - ../node_modules/:/src/node_modules/
       - ../package.json:/src/package.json
       - ../package-lock.json:/src/package-lock.json

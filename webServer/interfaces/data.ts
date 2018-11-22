@@ -6,7 +6,7 @@ export interface ISessionRequest {
 
 export interface ISessionData {
   userEmail: string,
-  readonly createdAt: number,
+  readonly createdAt: Date,
 }
 
 export interface IUserAccountConfig {
@@ -66,23 +66,4 @@ export interface IUsersPendingActivation {
 
 export interface IPasswordsPendingReset {
   token: string,
-}
-
-export interface IUserEntity {
-  id?: string,
-  email: string,
-  name: string,
-  password: string,
-  updatedAt: number,
-  readonly createdAt: number,
-}
-
-export interface IUserEntityModifiable {
-  email?: string,
-  name?: string,
-  password?: string,
-}
-
-export interface IUserEntityUpdate extends IUserEntityModifiable {
-  updatedAt: number,
 }

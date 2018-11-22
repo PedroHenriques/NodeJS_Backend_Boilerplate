@@ -19,7 +19,6 @@
 A `docker-compose` file is available with this repo, but you'll need to adjust it to your production needs and architecture.  
 The following files require production environment adjustments:
 - `webserver/middleware/validateCORS.ts`: If needed, add the domains you want to allow to make requests to the application, for CORS purposes.
-- `db/services/db.ts`: Add the URL for your production instance of MongoDB, by updating the line containing `let connectURL: string = 'YOUR PRODUCTION CONNECTION URL';`
 
 ## Development mode
 
@@ -39,15 +38,29 @@ The following files require production environment adjustments:
 
 ## Environment Variables
 
-All environment variables are defined in the `docker-compose` files and the associated `.env` file.
+All environment variables are defined in the `docker-compose` files and the associated `.env` file.  
+These files are located in the `docker/` directory.
 
-## Applications Configurations
+## Redis
+
+The container with the redis image will receive one of the configuration files located in the `redis/` directory.  
+
+The `docker-compose.yml` file will use the `redis/redis.conf` file and the `docker-compose.dev.yml` file will use the `redis/redis.dev.conf` file.
+
+## MongoDB
+
+The files in the `mongodb/scripts/` directory will be mounted into the `/docker-entrypoint-initdb.d/` directory inside the container.  
+
+MongoDB will automatically execute any `.sh` or `.js` files located inside that directory, in alphabetical order.  
+More information can be found in the [official mongoDB docker image github](https://github.com/docker-library/docs/blob/master/mongo/README.md#initializing-a-fresh-instance).
+
+## Application Configurations
 
 This boilerplates comes with a service that will load files into the cache.  
 
 You are encouraged to load any configuration files needed by the application code into the cache and then access it through the `cache` service when needed.  
 
-Further information about the `cache` service is provided below.
+Further information about the `cache` service is available in the `documentation/services/cache.md` file.
 
 # Test Client Application
 

@@ -7,8 +7,6 @@ ENV USER=node
 
 WORKDIR /src/
 
-RUN mkdir -p /src/dist/
-
 # defaults to development, docker compose overrides this when needed
 ARG NODE_ENV=development
 ENV NODE_ENV $NODE_ENV
@@ -20,4 +18,4 @@ ENV PATH node_modules/.bin:$PATH
 
 USER $USER
 
-CMD nodemon -L --inspect=0.0.0.0:9229 ./dist/configLoader/server.js
+CMD nodemon -L --inspect=0.0.0.0:9229 /src/mailer/index.js

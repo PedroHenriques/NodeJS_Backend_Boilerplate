@@ -24,9 +24,9 @@ import { ValidationError } from '../../sharedLibs/Errors/ValidationError';
 import { generateToken } from '../../sharedLibs/utils/tokenUtils';
 import { createHash } from '../../sharedLibs/utils/passwordUtils';
 import {
-  IUserEntity, IUsersPendingActivation, IUserEntityUpdate,
-  IUserAccountConfig, IPasswordsPendingReset
+  IUsersPendingActivation, IUserAccountConfig, IPasswordsPendingReset
 } from '../interfaces/data';
+import { IUserEntity, IUserEntityUpdate } from '../interfaces/dbSchema';
 
 export async function activateUser(
   args: { email: string, token: string }
@@ -57,8 +57,8 @@ export async function activateUser(
     email: args.email,
     name: userActivationData.name,
     password: userActivationData.pwHash,
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
   };
 
   const userEntity = await createUser(userData);
@@ -280,7 +280,7 @@ export async function endPwRecovery(
     email: args.email,
     data: {
       password: await createHash(args.newPassword),
-      updatedAt: Date.now(),
+      updatedAt: new Date(),
     }
   });
 

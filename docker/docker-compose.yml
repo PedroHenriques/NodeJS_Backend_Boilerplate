@@ -16,8 +16,17 @@ services:
     image: mongo:4
     container_name: mongoDb
     restart: on-failure
+    volumes:
+      - ../mongodb/scripts/:/docker-entrypoint-initdb.d/
     networks:
       - backend
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - MONGO_INITDB_DATABASE=${MONGO_DB_NAME}
+      - MONGO_APP_USER=${MONGO_DB_USER}
+      - MONGO_APP_PW=${MONGO_DB_PW}
+      - MONGO_APP_USER_AUTH_METHOD=${MONGO_DB_AUTH_METHOD}
 
   configloader:
     init: true
@@ -104,8 +113,8 @@ services:
       - NODE_ENV=production
       - DEPLOY_STAGE=production
       - SOCKET_SERVER_PORT=${DB_SOCKET_SERVER_PORT}
-      - MONGO_HOST=${MONGO_HOST}
-      - MONGO_PORT=${MONGO_PORT}
+      - CONNECT_URL=mongodb://${MONGO_DB_USER}:${MONGO_DB_PW}@${MONGO_HOST}:${MONGO_PORT}/${MONGO_DB_NAME}?authMechanism=${MONGO_DB_AUTH_METHOD}
+      - MIGRATION_CONNECT_URL=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@${MONGO_HOST}:${MONGO_PORT}/admin?authMechanism=${MONGO_DB_AUTH_METHOD}
       - MONGO_DB_NAME=${MONGO_DB_NAME}
 
   webServer:

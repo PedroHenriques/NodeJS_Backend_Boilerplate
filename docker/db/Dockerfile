@@ -30,16 +30,14 @@ FROM node:11-alpine
 # use the built-in "node" user from the nodejs image
 ENV USER=node
 WORKDIR /src/
-RUN mkdir -p /src/dist/
 # defaults to production, docker compose overrides this when needed
 ARG NODE_ENV=production
 ENV NODE_ENV $NODE_ENV
-COPY --from=builder /src/dist/ ./dist/
+COPY --from=builder /src/dist/ .
 COPY --from=builder /src/node_modules/ ./node_modules/
 COPY --from=builder /src/package.json ./package.json
 COPY --from=builder /src/package-lock.json ./package-lock.json
-COPY ./config/:./dist/config/
 RUN npm prune --production
 ENV PATH node_modules/.bin/:$PATH
 USER $USER
-CMD node ./dist/db/index.js
+CMD node ./db/index.js

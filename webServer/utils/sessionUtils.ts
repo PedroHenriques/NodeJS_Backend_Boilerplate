@@ -10,9 +10,8 @@ import {
   cacheStoreObjectIfNotExists, cacheGetObject, cacheExpireKey, cacheDeleteKeys
 } from '../../sharedLibs/utils/cacheEventDispatchers';
 import { getCookie } from '../../sharedLibs/utils/cookieUtils';
-import {
-  IUserEntity, ISessionData, IUserAccountConfig
-} from '../interfaces/data';
+import { ISessionData, IUserAccountConfig } from '../interfaces/data';
+import { IUserEntity } from '../interfaces/dbSchema';
 
 export async function startSession(
   args: { userEntity: IUserEntity }
@@ -28,7 +27,7 @@ export async function startSession(
 
   const sessionData: ISessionData = {
     userEmail: `${args.userEntity.email}`,
-    createdAt: Date.now(),
+    createdAt: new Date(),
   };
 
   if (! await cacheStoreObjectIfNotExists({

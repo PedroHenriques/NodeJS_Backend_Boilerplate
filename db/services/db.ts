@@ -2,10 +2,7 @@
 import { connect, MongoClient, Db } from 'mongodb';
 import * as logger from '../../sharedLibs/services/logger';
 
-let connectURL: string = 'YOUR PRODUCTION CONNECTION URL';
-if (process.env.NODE_ENV === 'development') {
-  connectURL = `mongodb://${process.env.MONGO_HOST}:${process.env.MONGO_PORT}`;
-}
+const connectURL: string = process.env.CONNECT_URL || '';
 
 let client: MongoClient;
 let db: Db;
@@ -16,6 +13,12 @@ connect(connectURL, { useNewUrlParser: true })
 
   client = mongoClient;
   db = client.db(process.env.MONGO_DB_NAME);
+})
+.catch(error => {
+  logger.error({
+    message: error.message,
+    payload: error,
+  });
 });
 
 export async function insertOne(

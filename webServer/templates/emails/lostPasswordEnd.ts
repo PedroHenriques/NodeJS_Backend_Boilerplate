@@ -1,5 +1,5 @@
 'use strict';
-import { IEmailBody } from '../../interfaces/templeates';
+import { IEmailBody } from '../../interfaces/templates';
 
 export default function emailBody(): IEmailBody {
   /* tslint:disable:max-line-length */

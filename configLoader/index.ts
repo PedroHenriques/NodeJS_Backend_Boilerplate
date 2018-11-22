@@ -18,7 +18,7 @@ connectSocket(
 const configLoader = configLoaderFactory({
   filesToWatch: {
     userAccountConfig: {
-      path: resolve(join('.', 'dist', 'config', 'userAccountConfig.json')),
+      path: resolve(join('.', 'config', 'userAccountConfig.json')),
       lastModified: -1,
       persistKey: userAccountConfigKeyGen(),
     },

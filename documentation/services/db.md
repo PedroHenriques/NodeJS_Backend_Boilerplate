@@ -4,6 +4,24 @@
 
 This service creates an abstraction layer between the application and the database solution used, which in this case is `MongoDB`.
 
+## Migrations
+
+Even though MongoDB is schemaless, this boilerplate configures the collections used to have schema validation and the necessary indexes.  
+
+To setup the DB migration files are used.  
+These files are located in the `db/migrations/` directory.  
+
+To run the CLI commands for the migration manager follow these steps:  
+
+1. Make sure the `mongodb` container is running
+2. `cd` into the `docker/` directory
+3. Enter the `mongodb` container by running the command:  
+    Development: `docker-compose -f docker-compose.dev.yml exec db sh`  
+    Production: `docker-compose exec db sh`  
+4. Run the command `npm run migrate -- [YOUR COMMAND]`
+
+For a list of available commands please consult the documentation for the [migrate-mongo](https://github.com/seppevs/migrate-mongo) package.
+
 ## Socket Server
 
 This service creates a socket server, listening to the following events:
