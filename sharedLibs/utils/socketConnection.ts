@@ -1,7 +1,7 @@
 'use strict';
 import { connect } from 'socket.io-client';
 import * as logger from '../services/logger';
-import { TSocketTags } from '../interfaces/utils';
+import { TSocketTags } from '../types/events';
 
 const sockets: { [key: string]: SocketIOClient.Socket } = {};
 

@@ -4,7 +4,9 @@ import {
 } from '../../sharedLibs/utils/fileHandlers';
 import * as logger from '../../sharedLibs/services/logger';
 import { getSocket } from '../../sharedLibs/utils/socketConnection';
-import { cacheStoreObject } from '../../sharedLibs/utils/cacheEventDispatchers';
+import {
+  socketCacheStoreObject
+} from '../../sharedLibs/utils/cacheEventDispatchers';
 import {
   IFilesToWatch, IFileLoaderArgs, IFileTypeHandlers
 } from '../interfaces/services';
@@ -25,9 +27,7 @@ export default function configLoader(args: IFileLoaderArgs) {
         const stats = await getFileStats(filesToWatch[key].path);
 
         const fileModTime = stats.mtimeMs;
-        if (fileModTime <= filesToWatch[key].lastModified) {
-          return;
-        }
+        if (fileModTime <= filesToWatch[key].lastModified) { return; }
 
         logger.info({
           message: `File ${filesToWatch[key].path} change detected.`
@@ -55,13 +55,8 @@ export default function configLoader(args: IFileLoaderArgs) {
         );
         if (fileContent === undefined) { return; }
 
-        const socket = getSocket('cache');
-        if (socket === null) {
-          throw Error('Could not find the socket with tag "cache"');
-        }
-
-        await cacheStoreObject({
-          socket,
+        await socketCacheStoreObject({
+          socket: getSocket('cache'),
           payload: {
             key: filesToWatch[key].persistKey,
             value: fileContent,

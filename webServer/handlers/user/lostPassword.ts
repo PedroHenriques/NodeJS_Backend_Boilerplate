@@ -1,7 +1,8 @@
 'use strict';
 import { Request, Response } from 'express';
 import * as Validator from 'validatorjs';
-import { userExists, startPwRecovery } from '../../models/users';
+import userExists from '../../models/users/userExists';
+import startPwRecovery from '../../models/users/startPwRecovery';
 import * as logger from '../../../sharedLibs/services/logger';
 
 export default async function handler(

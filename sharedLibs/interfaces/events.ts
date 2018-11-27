@@ -1,12 +1,21 @@
 'use strict';
+import { TSocket, TChannel, TQueueNames, TPayload } from '../types/events';
 
-export type TEventCb = (error: Error | null, value?: any) => void;
-
-export interface IEventDispatcher {
-  socket: SocketIOClient.Socket,
-  payload?: Object | string | number,
+export interface ISocketEventDispatcher {
+  socket: TSocket,
+  type: string,
+  payload?: TPayload,
 }
 
-export * from './cacheEvents';
-export * from './mailerEvents';
-export * from './dbEvents';
+export interface IMQEventDispatcher {
+  mqChannel: TChannel,
+  persistent: boolean,
+  queueName: TQueueNames,
+  data: IMQEventMessage,
+}
+
+export interface IMQEventMessage {
+  type: string,
+  requeue: boolean,
+  payload?: TPayload,
+}

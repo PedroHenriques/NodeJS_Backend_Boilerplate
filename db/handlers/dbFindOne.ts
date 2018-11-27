@@ -1,9 +1,8 @@
 'use strict';
 import * as logger from '../../sharedLibs/services/logger';
 import * as db from '../services/db';
-import {
-  IDbFindOnePayload, TEventCb
-} from '../../sharedLibs/interfaces/events';
+import { TEventCb } from '../../sharedLibs/types/events';
+import { IDbFindOnePayload } from '../../sharedLibs/interfaces/dbEvents';
 
 export default function handler(
   payload: IDbFindOnePayload,

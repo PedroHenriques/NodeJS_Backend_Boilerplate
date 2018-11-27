@@ -2,7 +2,7 @@
 
 module.exports = {
   mongodb: {
-    url: process.env.MIGRATION_CONNECT_URL || '',
+    url: process.env.DB_MIGRATION_CONNECT_URL || '',
     databaseName: process.env.MONGO_DB_NAME,
     options: {
       useNewUrlParser: true,

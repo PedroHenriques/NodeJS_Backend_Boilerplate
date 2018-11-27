@@ -2,7 +2,7 @@
 import { connect, MongoClient, Db } from 'mongodb';
 import * as logger from '../../sharedLibs/services/logger';
 
-const connectURL: string = process.env.CONNECT_URL || '';
+const connectURL: string = process.env.DB_CONNECT_URL || '';
 
 let client: MongoClient;
 let db: Db;
@@ -31,7 +31,7 @@ export async function insertOne(
 
 export async function findOne(
   args: { collection: string, query: Object }
-): Promise<any> {
+): Promise<Object | null> {
   const collection = db.collection(args.collection);
   const findResult = await collection.findOne(args.query);
   return(findResult);
@@ -39,7 +39,7 @@ export async function findOne(
 
 export async function findOneUpdate(
   args: { collection: string, filter: Object, update: Object }
-): Promise<any> {
+): Promise<Object> {
   const collection = db.collection(args.collection);
   const modifyResult = await collection.findOneAndUpdate(
     args.filter, args.update, { returnOriginal: false }

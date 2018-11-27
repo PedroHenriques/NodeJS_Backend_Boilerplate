@@ -1,0 +1,61 @@
+{
+  "rabbit_version":"3.7.8",
+  "users": [
+    {
+      "name": "rootUser",
+      "password_hash": "LWydfTktpv1mhKmvkcFFH/G0gj7MruXQ1l9DxqBo3My1q/wt",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": "administrator"
+    },
+    {
+      "name": "appUser",
+      "password_hash": "+qH0tR2fF2C9upF7Q8bVyOCk6qV/DTVnqhybeHZOM7jI9Amx",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": "user"
+    }
+  ],
+  "vhosts":[
+    {
+      "name": "/"
+    }
+  ],
+  "permissions":[
+    {
+      "user": "appUser",
+      "vhost": "/",
+      "configure": "^$",
+      "write": ".*",
+      "read": ".*"
+    },
+    {
+      "user": "rootUser",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "queues":[
+    {
+      "name": "db",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "mailer",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "cache",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    }
+  ]
+}

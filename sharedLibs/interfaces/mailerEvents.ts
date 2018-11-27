@@ -1,9 +1,5 @@
 'use strict';
-import { IEventDispatcher } from './events';
-
-export interface IMailerSendEmail extends IEventDispatcher {
-  payload: IMailerSendEmailPayload,
-}
+import { TSocket, TChannel } from '../types/events';
 
 export interface IMailerSendEmailPayload {
   from: {
@@ -16,4 +12,12 @@ export interface IMailerSendEmailPayload {
     plain?: string,
     html: string,
   },
+}
+export interface ISocketMailerSendEmail {
+  socket: TSocket,
+  payload: IMailerSendEmailPayload,
+}
+export interface IMQMailerSendEmail {
+  mqChannel: TChannel,
+  payload: IMailerSendEmailPayload,
 }

@@ -1,6 +1,19 @@
 version: '3.7'
 
 services:
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitMQ
+    hostname: ${RABBITMQ_DATABASE_NAME}
+    restart: on-failure
+    ports:
+      - "${RABBITMQ_PORT}:5672"
+      - "${RABBITMQ_MNGT_PORT}:15672"
+    volumes:
+      - ../rabbitmq/dev/definitions.json:/etc/rabbitmq/definitions.json
+    networks:
+      - backend
+  
   redis:
     image: redis:4-alpine
     container_name: redis
@@ -109,6 +122,7 @@ services:
       args:
         - NODE_ENV=development
     depends_on:
+      - rabbitmq
       - mailhog
     ports:
       - "${MAILER_SOCKET_SERVER_PORT}:${MAILER_SOCKET_SERVER_PORT}"
@@ -125,6 +139,7 @@ services:
       - NODE_ENV=development
       - DEPLOY_STAGE=local
       - SOCKET_SERVER_PORT=${MAILER_SOCKET_SERVER_PORT}
+      - QUEUE_CON_URL=amqp://${RABBITMQ_APP_USER}:${RABBITMQ_APP_PASS}@${RABBITMQ_HOST}:${RABBITMQ_PORT}
       - MAIL_HOST=${MAILHOG_HOST}
       - MAIL_PORT=${MAILHOG_EMAIL_PORT}
 
@@ -185,8 +200,8 @@ services:
       - NODE_ENV=development
       - DEPLOY_STAGE=local
       - SOCKET_SERVER_PORT=${DB_SOCKET_SERVER_PORT}
-      - CONNECT_URL=mongodb://${MONGO_DB_USER}:${MONGO_DB_PW}@${MONGO_HOST}:${MONGO_PORT}/${MONGO_DB_NAME}?authMechanism=${MONGO_DB_AUTH_METHOD}
-      - MIGRATION_CONNECT_URL=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@${MONGO_HOST}:${MONGO_PORT}/admin?authMechanism=${MONGO_DB_AUTH_METHOD}
+      - DB_CONNECT_URL=mongodb://${MONGO_DB_USER}:${MONGO_DB_PW}@${MONGO_HOST}:${MONGO_PORT}/${MONGO_DB_NAME}?authMechanism=${MONGO_DB_AUTH_METHOD}
+      - DB_MIGRATION_CONNECT_URL=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@${MONGO_HOST}:${MONGO_PORT}/admin?authMechanism=${MONGO_DB_AUTH_METHOD}
       - MONGO_DB_NAME=${MONGO_DB_NAME}
   
   webserver:
@@ -199,6 +214,7 @@ services:
       args:
         - NODE_ENV=development
     depends_on:
+      - rabbitmq
       - cache
       - configloader
       - mailer
@@ -217,6 +233,7 @@ services:
       - NODE_ENV=development
       - DEPLOY_STAGE=local
       - PORT=${WEBSERVER_PORT}
+      - QUEUE_CON_URL=amqp://${RABBITMQ_APP_USER}:${RABBITMQ_APP_PASS}@${RABBITMQ_HOST}:${RABBITMQ_PORT}
       - CACHE_HOST=${CACHE_SOCKET_SERVER_HOST}
       - CACHE_PORT=${CACHE_SOCKET_SERVER_PORT}
       - MAILER_HOST=${MAILER_SOCKET_SERVER_HOST}

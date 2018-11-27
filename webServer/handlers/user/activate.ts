@@ -1,7 +1,7 @@
 'use strict';
 import { Response, Request } from 'express';
 import * as Validator from 'validatorjs';
-import { activateUser } from '../../models/users';
+import activateUser from '../../models/users/activateUser';
 import * as logger from '../../../sharedLibs/services/logger';
 import { ValidationError } from '../../../sharedLibs/Errors/ValidationError';
 

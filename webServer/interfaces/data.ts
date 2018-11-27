@@ -67,3 +67,11 @@ export interface IUsersPendingActivation {
 export interface IPasswordsPendingReset {
   token: string,
 }
+
+export interface IUserEntityResponse {
+  readonly id: string,
+  readonly email: string,
+  readonly name: string,
+  readonly updatedAt: Date,
+  readonly createdAt: Date,
+}

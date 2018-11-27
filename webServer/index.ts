@@ -6,36 +6,38 @@ import serverErrorHandler from './middleware/serverErrorHandler';
 import v1Router from './routers/v1';
 import { connectSocket } from '../sharedLibs/utils/socketConnection';
 import * as logger from '../sharedLibs/services/logger';
+import { connectWithRetry } from '../sharedLibs/utils/queue';
 
 if (
-  process.env.CACHE_HOST === undefined ||
-  process.env.CACHE_PORT === undefined
+  process.env.CACHE_HOST !== undefined &&
+  process.env.CACHE_PORT !== undefined
 ) {
-  throw Error('Missing "cache" container host and/or port env variables');
+  connectSocket(
+    process.env.CACHE_HOST, parseInt(process.env.CACHE_PORT, 10), 'cache'
+  );
 }
-connectSocket(
-  process.env.CACHE_HOST, parseInt(process.env.CACHE_PORT, 10), 'cache'
-);
 
 if (
-  process.env.MAILER_HOST === undefined ||
-  process.env.MAILER_PORT === undefined
+  process.env.MAILER_HOST !== undefined &&
+  process.env.MAILER_PORT !== undefined
 ) {
-  throw Error('Missing "mailer" container host and/or port env variables');
+  connectSocket(
+    process.env.MAILER_HOST, parseInt(process.env.MAILER_PORT, 10), 'mailer'
+  );
 }
-connectSocket(
-  process.env.MAILER_HOST, parseInt(process.env.MAILER_PORT, 10), 'mailer'
-);
 
 if (
-  process.env.DB_HOST === undefined ||
-  process.env.DB_PORT === undefined
+  process.env.DB_HOST !== undefined &&
+  process.env.DB_PORT !== undefined
 ) {
-  throw Error('Missing "db" container host and/or port env variables');
+  connectSocket(
+    process.env.DB_HOST, parseInt(process.env.DB_PORT, 10), 'db'
+  );
 }
-connectSocket(
-  process.env.DB_HOST, parseInt(process.env.DB_PORT, 10), 'db'
-);
+
+if (process.env.QUEUE_CON_URL !== undefined) {
+  connectWithRetry({ connectionURL: process.env.QUEUE_CON_URL });
+}
 
 if (process.env.NODE_ENV === undefined) {
   process.env.NODE_ENV = 'production';

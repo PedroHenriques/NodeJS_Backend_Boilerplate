@@ -1,7 +1,9 @@
 'use strict';
 import * as logger from '../../sharedLibs/services/logger';
 import { getSocket } from '../../sharedLibs/utils/socketConnection';
-import { cacheGetObject } from '../../sharedLibs/utils/cacheEventDispatchers';
+import {
+  socketCacheGetObject
+} from '../../sharedLibs/utils/cacheEventDispatchers';
 import {
   userAccountConfigKeyGen
 } from '../../sharedLibs/utils/cacheKeyGenerator';
@@ -19,7 +21,7 @@ export async function getDomainUrl(
         throw Error('Could not find a socket with the tag "cache"');
       }
 
-      userAccountConfig = await cacheGetObject({
+      userAccountConfig = await socketCacheGetObject({
         socket: socketToCache,
         payload: {
           key: userAccountConfigKeyGen(),

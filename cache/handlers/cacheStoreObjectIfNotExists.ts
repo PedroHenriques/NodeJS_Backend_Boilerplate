@@ -1,9 +1,10 @@
 'use strict';
 import * as logger from '../../sharedLibs/services/logger';
 import * as cache from '../services/cache';
+import { TEventCb } from '../../sharedLibs/types/events';
 import {
-  ICacheStoreObjectIfNotExistsPayload, TEventCb
-} from '../../sharedLibs/interfaces/events';
+  ICacheStoreObjectIfNotExistsPayload
+} from '../../sharedLibs/interfaces/cacheEvents';
 
 export default function handler(
   payload: ICacheStoreObjectIfNotExistsPayload,

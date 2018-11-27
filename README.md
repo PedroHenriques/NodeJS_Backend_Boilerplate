@@ -5,11 +5,13 @@
 - **NodeJS** (v11.*)
 - **Redis** (v4.*)
 - **MongoDB** (v4.*)
+- **RabbitMQ** (v3.*)
 
 ## In development environment these tools are also available:
 
 - **Redis Commander**: A GUI for Redis
 - **Mongo Express**: A GUI for MongoDB
+- **RabbitMQ Management**: A GUI for RabbitMQ
 - **Mailhog**: A mail catcher tool
 
 # Setup
@@ -32,7 +34,8 @@ The following files require production environment adjustments:
 
 . A GUI for the **emails sent** is available at `http://localhost:8025`  
 . A GUI for **Redis** is available at `http://localhost:8081`  
-. A GUI for **MongoDB** is available at `http://localhost:8082`
+. A GUI for **MongoDB** is available at `http://localhost:8082`  
+. A GUI for **RabbitMQ** is available at `http://localhost:8083`
 
 # Configuration
 
@@ -54,13 +57,22 @@ The files in the `mongodb/scripts/` directory will be mounted into the `/docker-
 MongoDB will automatically execute any `.sh` or `.js` files located inside that directory, in alphabetical order.  
 More information can be found in the [official mongoDB docker image github](https://github.com/docker-library/docs/blob/master/mongo/README.md#initializing-a-fresh-instance).
 
+## RabbitMQ
+
+The files in the `rabbitmq` directory will be mounted into the container with the RabbitMQ image.  
+Place any configuration files inside the `dev` or `prod` directories.  
+
+This boilerplate is using the `rabbitmq:*-management-alpine` variant of the RabbitMQ docker image, which comes with the management plugin activate.  
+The `definitions.json`, supported by the management plugin, allows you to configure the initial setup of your message queue.  
+Use it to configure any `users`, and their `permissions`, `vhosts` and `queues` that should be created at bootup.
+
 ## Application Configurations
 
 This boilerplates comes with a service that will load files into the cache.  
 
 You are encouraged to load any configuration files needed by the application code into the cache and then access it through the `cache` service when needed.  
 
-Further information about the `cache` service is available in the `documentation/services/cache.md` file.
+Further information about the `configLoader` service is available in the `documentation/services/configLoader.md` file.
 
 # Test Client Application
 
@@ -100,39 +112,65 @@ client.login('test@test.com', 'new password');
 The application is built in several services, each in a docker container.  
 This makes it easier to scale bottleneck services, by creating replicas of those services and also makes the application modular and thus easier to maintain and modify over time.  
 
-The various services communicate via `sockets` with each another, dispatching events that trigger actions in other containers.  
-These socket connections support 2 way communication if needed.
+The various services communicate via `events` with each another that trigger actions in other containers.  
+These events are dispatched through `sockets` and/or `message queues`.  
+
+The socket connections support 2 way communication if needed, while the message queue is great for "fire and forget" events.  
 
 Detailed information about each service is available in the `documentation/services/` directory.
 
-# Socket Events
+# Events
 
-As mentioned above, each service is in a dedicated docker container and communication between containers is done by dispatching events via socket connections.  
+As mentioned above, each service is in a dedicated docker container and communication between containers is done by dispatching events.  
+
+These events can be sent over a `socket` or through a `message queue`.  
+
+**Sockets** allow direct two way communication between services, which permite a callback function to be provided with the event.  
+This is the recommended way to handle events that expect something in return.  
+
+**Queue messages** allow for a durable event dispatching, where if the event fails to be processed it will be requeued and tryied again.  
+They are not, however, ideal at handling events that expect a callback.  
+
+The event dispatchers provided with this boilerplate make it possible to provide the same payload, in your code, for socket and message queue.  
+They will make the necessary adjustments for the different systems.  
+
+This also means that the handlers, in each service, that will be called on an event, should be the same regardless of how the event was dispatched (i.e. socket or messahe queue).  
+
+This boilerplate uses the message queue for email related events and sockets for cache and db related events.  
+However, you can easily change this behavior by switching the socket event dispatchers with the message queue event dispatchers.
+
+## Event Dispatchers
+
+This boilerplate provides event dispatchers for use with sockets and the message queue.  
+
+They are located in the `sharedLibs/utils/eventDispatchers.ts` module, and are used in all specific event dispatchers used by the **cache**, **db** and **mailer** related events.
+
+# Socket Events
 
 ## Creating a socket server
 
 To facilitate and standardize creating socket servers, a factory function is available in the `sharedLibs/utils/socketServer.ts` file.  
 
-This function expects the following arguments:  
+This function has the following signature:  
 
-- **handler function**:
 ```ts
-(socket: socketIo.Socket) => void
+(handler: (socket: socketIo.Socket) => void, port: number, options?: socketIo.ServerOptions) => socketIo.Server
 ```
-Use this function to bind any listeners you want.
 
-- **port**: `number` The port the socket server will use.
+where
 
-- **options**: `socketIo.ServerOptions` The options object, defined by the Socket.IO package, to use for this server.
+- **handler**: A function used to create your event bindings
 
-The return value is a socket server of the type `socketIo.Server`.
+- **port**: The port the socket server will use.
+
+- **options**: The options object, defined by the Socket.IO package, to use for this server.
 
 ## Creating a socket connection
 
 To facilitate creating socket connections and manage multiple connections, the module located in the `sharedLibs/utils/socketConnection.ts` file exposes several helper functions that can create a socket connection to another service and assign them to tags.  
 
 These tags make it easier to later get a reference to a specific socket and dispatch events to the target service.  
-The valid tags are defined in the `TSocketTags` type, in the `sharedLibs/interfaces/utils.ts` file.
+The valid tags are defined in the `TSocketTags` type, in the `sharedLibs/types/events.ts` file.
 
 ## Socket Event Callbacks
 
@@ -147,6 +185,15 @@ It will ba called by the event handler after all processing has ended.
 In case of a success, the callback will receive `null` as the first argument and `some value` as the second argument, which will depend on the specific event.  
 
 In case of a failure, the callback will receive an instance of `Error` as the first argument and nothing as the second argument.
+
+# Message Queue Events
+
+The `sharedLibs/utils/queue.ts` module provide functions that will facilitate interactions with the message queue system (MQ).  
+
+The easiest way to setup a connection to the message queue is to call the `connectWithRetry()` function.  
+This function will keep trying to connect to the MQ, waiting 1 second between tries.  
+
+The RabbitMQ container will likelly take longer to setup up than the containers that will connect to it, which means its is expected that the connection will fail a few times before succeeding.
 
 # API Endpoints
 

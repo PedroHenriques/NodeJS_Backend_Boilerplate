@@ -2,12 +2,14 @@
 import { Request, Response, NextFunction } from 'express';
 import { closeSession } from '../utils/sessionUtils';
 import { getSocket } from '../../sharedLibs/utils/socketConnection';
-import { cacheGetObject } from '../../sharedLibs/utils/cacheEventDispatchers';
+import {
+  socketCacheGetObject
+} from '../../sharedLibs/utils/cacheEventDispatchers';
 import {
   userAccountConfigKeyGen, sessionTokensKeyGen
 } from '../../sharedLibs/utils/cacheKeyGenerator';
 import * as logger from '../../sharedLibs/services/logger';
-import { getUserByEmail } from '../models/users';
+import getUserByEmail from '../models/users/getUserByEmail';
 import { getCookie, clearCookie } from '../../sharedLibs/utils/cookieUtils';
 import { IUserAccountConfig, ISessionData } from '../interfaces/data';
 
@@ -18,7 +20,7 @@ export default async function session(
 
   const socketToCache = getSocket('cache');
 
-  const userAccountConfig = await cacheGetObject({
+  const userAccountConfig = await socketCacheGetObject({
     socket: socketToCache,
     payload: { key: userAccountConfigKeyGen() }
   }) as IUserAccountConfig;
@@ -31,7 +33,7 @@ export default async function session(
     });
   } else {
     const sessionTokenCacheKey = sessionTokensKeyGen({ token });
-    const sessionData = await cacheGetObject({
+    const sessionData = await socketCacheGetObject({
       socket: socketToCache,
       payload: { key: sessionTokenCacheKey }
     }) as ISessionData;

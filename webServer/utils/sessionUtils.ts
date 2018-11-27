@@ -7,7 +7,8 @@ import {
   sessionTokensKeyGen, userAccountConfigKeyGen
 } from '../../sharedLibs/utils/cacheKeyGenerator';
 import {
-  cacheStoreObjectIfNotExists, cacheGetObject, cacheExpireKey, cacheDeleteKeys
+  socketCacheStoreObjectIfNotExists, socketCacheGetObject, socketCacheExpireKey,
+  socketCacheDeleteKeys
 } from '../../sharedLibs/utils/cacheEventDispatchers';
 import { getCookie } from '../../sharedLibs/utils/cookieUtils';
 import { ISessionData, IUserAccountConfig } from '../interfaces/data';
@@ -30,7 +31,7 @@ export async function startSession(
     createdAt: new Date(),
   };
 
-  if (! await cacheStoreObjectIfNotExists({
+  if (! await socketCacheStoreObjectIfNotExists({
     socket: socketToCache,
     payload: {
       key: sessionTokenPersistKey,
@@ -43,7 +44,7 @@ export async function startSession(
     )));
   }
 
-  const userAccountConfig = await cacheGetObject({
+  const userAccountConfig = await socketCacheGetObject({
     socket: socketToCache,
     payload: {
       key: userAccountConfigKeyGen(),
@@ -52,7 +53,7 @@ export async function startSession(
 
   logger.debug({ message: 'Setting expire to session token' });
 
-  cacheExpireKey({
+  socketCacheExpireKey({
     socket: socketToCache,
     payload: {
       key: sessionTokenPersistKey,
@@ -77,7 +78,7 @@ export async function closeSession(
 ): Promise<void> {
   const socketToCache = getSocket('cache');
 
-  const userAccountConfig = await cacheGetObject({
+  const userAccountConfig = await socketCacheGetObject({
     socket: socketToCache,
     payload: { key: userAccountConfigKeyGen() }
   }) as IUserAccountConfig;
@@ -94,7 +95,7 @@ export async function closeSession(
 
   const sessionTokenCacheKey = sessionTokensKeyGen({ token });
 
-  cacheDeleteKeys({
+  socketCacheDeleteKeys({
     socket: socketToCache,
     payload: { keys: [ sessionTokenCacheKey ] }
   })

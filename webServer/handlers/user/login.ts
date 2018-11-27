@@ -1,14 +1,14 @@
 'use strict';
 import { Request, Response } from 'express';
 import * as Validator from 'validatorjs';
-import { getUserByEmail } from '../../models/users';
+import getUserByEmail from '../../models/users/getUserByEmail';
 import { startSession } from '../../utils/sessionUtils';
 import * as logger from '../../../sharedLibs/services/logger';
 import { setCookie } from '../../../sharedLibs/utils/cookieUtils';
 import { matchHash } from '../../../sharedLibs/utils/passwordUtils';
 import { getSocket } from '../../../sharedLibs/utils/socketConnection';
 import {
-  cacheGetObject
+  socketCacheGetObject
 } from '../../../sharedLibs/utils/cacheEventDispatchers';
 import {
   userAccountConfigKeyGen
@@ -43,7 +43,7 @@ export default async function handler(
 
     const sessionToken = await startSession({ userEntity });
 
-    const userAccountConfig = await cacheGetObject({
+    const userAccountConfig = await socketCacheGetObject({
       socket: getSocket('cache'),
       payload: {
         key: userAccountConfigKeyGen(),

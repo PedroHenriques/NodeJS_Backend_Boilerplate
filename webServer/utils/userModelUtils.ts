@@ -5,7 +5,7 @@ import {
   usersPendingActivationKeyGen, passwordsPendingResetKeyGen
 } from '../../sharedLibs/utils/cacheKeyGenerator';
 import {
-  cacheStoreObject, cacheExpireKey
+  socketCacheStoreObject, socketCacheExpireKey
 } from '../../sharedLibs/utils/cacheEventDispatchers';
 import { IUsersPendingActivation } from '../interfaces/data';
 
@@ -24,7 +24,7 @@ export async function storePendingActivationUser(
     name: args.name,
   };
 
-  await cacheStoreObject({
+  await socketCacheStoreObject({
     socket: socketToCache,
     payload: {
       key: persistKey,
@@ -32,7 +32,7 @@ export async function storePendingActivationUser(
     },
   });
 
-  cacheExpireKey({
+  socketCacheExpireKey({
     socket: socketToCache,
     payload: {
       key: persistKey,
@@ -55,7 +55,7 @@ export async function storePendingPasswordReset(
 
   const persistKey = passwordsPendingResetKeyGen({ email: args.email });
 
-  await cacheStoreObject({
+  await socketCacheStoreObject({
     socket: socketToCache,
     payload: {
       key: persistKey,
@@ -63,7 +63,7 @@ export async function storePendingPasswordReset(
     },
   });
 
-  cacheExpireKey({
+  socketCacheExpireKey({
     socket: socketToCache,
     payload: {
       key: persistKey,

@@ -7,7 +7,7 @@ import {
   userAccountConfigKeyGen
 } from '../../../sharedLibs/utils/cacheKeyGenerator';
 import {
-  cacheGetObject
+  socketCacheGetObject
 } from '../../../sharedLibs/utils/cacheEventDispatchers';
 import { clearCookie } from '../../../sharedLibs/utils/cookieUtils';
 import { IUserAccountConfig } from '../../interfaces/data';
@@ -16,7 +16,7 @@ export default async function handler(
   req: Request, res: Response
 ): Promise<Response> {
   try {
-    const userAccountConfig = await cacheGetObject({
+    const userAccountConfig = await socketCacheGetObject({
       socket: getSocket('cache'),
       payload: {
         key: userAccountConfigKeyGen(),

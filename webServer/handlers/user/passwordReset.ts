@@ -1,7 +1,7 @@
 'use strict';
 import { Request, Response } from 'express';
 import * as Validator from 'validatorjs';
-import { endPwRecovery } from '../../models/users';
+import endPwRecovery from '../../models/users/endPwRecovery';
 import * as logger from '../../../sharedLibs/services/logger';
 import { ValidationError } from '../../../sharedLibs/Errors/ValidationError';
 

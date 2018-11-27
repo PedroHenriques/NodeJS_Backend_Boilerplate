@@ -1,15 +1,30 @@
 'use strict';
+import { socketEventDispatcher, mqEventDispatcher } from './eventDispatchers';
 import * as Events from '../utils/eventTypes';
-import * as IEvents from '../interfaces/events';
+import { TQueueNames } from '../types/events';
+import * as IEvents from '../interfaces/mailerEvents';
 
-export function mailerSendEmail(
-  args: IEvents.IMailerSendEmail
+const queueName: TQueueNames = 'mailer';
+
+export function socketMailerSendEmail(
+  args: IEvents.ISocketMailerSendEmail
 ): Promise<any> {
-  return(new Promise((resolve, reject) => {
-    const cb: IEvents.TEventCb = (error: Error | null, data: any) => {
-      if (error) { reject(error); }
-      else { resolve(data); }
-    };
-    args.socket.emit(Events.MAILER_SEND_EMAIL, args.payload, cb);
+  return(socketEventDispatcher<any>({
+    ...args,
+    type: Events.MAILER_SEND_EMAIL,
+  }));
+}
+export function mqMailerSendEmail(
+  args: IEvents.IMQMailerSendEmail
+): Promise<void> {
+  return(mqEventDispatcher({
+    mqChannel: args.mqChannel,
+    persistent: true,
+    queueName,
+    data: {
+      type: Events.MAILER_SEND_EMAIL,
+      requeue: true,
+      payload: args.payload,
+    }
   }));
 }
