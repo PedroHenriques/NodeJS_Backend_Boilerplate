@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.1.0] - 2018-11-28
+### Changed
+- updated npm dependencies to latest version (mongodb, nodemailer, @types/node, @types/redis, node-fetch, nodemon)
+- removed variable, in User model activateUser(), that was only used once
+
 ## [2.0.0] - 2018-11-27
 ### Added
 - Support for RabbitMQ message queue as another way of handling events inside the application, besides sockets

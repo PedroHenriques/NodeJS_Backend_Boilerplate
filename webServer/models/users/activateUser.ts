@@ -64,14 +64,6 @@ export default async function activateUser(
     },
   });
 
-  const UserEntityResponse: IUserEntityResponse = {
-    id: userId,
-    email: userData.email,
-    name: userData.name,
-    createdAt: userData.createdAt,
-    updatedAt: userData.updatedAt,
-  };
-
   socketCacheDeleteKeys({
     socket: socketToCache,
     payload: { keys: [ userActivationKey ] }
@@ -119,5 +111,11 @@ export default async function activateUser(
     }
   });
 
-  return(UserEntityResponse);
+  return({
+    id: userId,
+    email: userData.email,
+    name: userData.name,
+    createdAt: userData.createdAt,
+    updatedAt: userData.updatedAt,
+  });
 }
