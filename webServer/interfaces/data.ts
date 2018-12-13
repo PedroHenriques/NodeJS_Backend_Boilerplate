@@ -1,11 +1,11 @@
 'use strict';
 
 export interface ISessionRequest {
-  userEmail: string,
+  userID: string,
 }
 
 export interface ISessionData {
-  userEmail: string,
+  userID: string,
   readonly createdAt: Date,
 }
 

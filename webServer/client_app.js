@@ -22,6 +22,7 @@ module.exports.createUser = (email, password, name) => {
     if (data.errors) { throw data.errors; }
 
     console.log('User created!');
+    console.log(data);
   })
   .catch(error => {
     console.error(error);
@@ -46,6 +47,7 @@ module.exports.activateUser = (email, token) => {
     if (data.errors) { throw data.errors; }
 
     console.log('User account activated!');
+    console.log(data);
   })
   .catch(error => {
     console.error(error);
@@ -70,6 +72,7 @@ module.exports.lostPassword = (email) => {
     if (data.errors) { throw data.errors; }
 
     console.log('User account lost password started!');
+    console.log(data);
   })
   .catch(error => {
     console.error(error);
@@ -94,6 +97,7 @@ module.exports.resetPassword = (email, token, password) => {
     if (data.errors) { throw data.errors; }
 
     console.log('User account password reseted!');
+    console.log(data);
   })
   .catch(error => {
     console.error(error);
@@ -130,6 +134,7 @@ module.exports.login = (email, password) => {
     if (data.errors) { throw data.errors; }
 
     console.log('logged in!');
+    console.log(data);
   })
   .catch(error => {
     console.error(error);
@@ -153,6 +158,7 @@ module.exports.logout = () => {
     if (data.errors) { throw data.errors; }
 
     console.log('logged out!');
+    console.log(data);
   })
   .catch(error => {
     console.error(error);

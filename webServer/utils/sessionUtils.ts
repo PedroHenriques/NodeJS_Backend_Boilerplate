@@ -7,16 +7,30 @@ import {
   sessionTokensKeyGen, userAccountConfigKeyGen
 } from '../../sharedLibs/utils/cacheKeyGenerator';
 import {
-  socketCacheStoreObjectIfNotExists, socketCacheGetObject, socketCacheExpireKey,
-  socketCacheDeleteKeys
+  mqCacheStoreObjectIfNotExists, socketCacheGetObject, mqCacheExpireKey,
+  mqCacheDeleteKeys
 } from '../../sharedLibs/utils/cacheEventDispatchers';
 import { getCookie } from '../../sharedLibs/utils/cookieUtils';
+import { channel } from '../../sharedLibs/utils/queue';
 import { ISessionData, IUserAccountConfig } from '../interfaces/data';
 import { IUserEntity } from '../interfaces/dbSchema';
 
 export async function startSession(
   args: { userEntity: IUserEntity }
 ): Promise<string> {
+  if (args.userEntity.id === undefined) {
+    return(Promise.reject(new Error(
+      'Trying to start a session, but no user ID was provided in the ' +
+      `user entity ${JSON.stringify(args.userEntity)}`
+    )));
+  }
+  if (channel === undefined) {
+    return(Promise.reject(new Error(
+      'Trying to dispatch event to queue but no channel with the ' +
+      'message queue is created'
+    )));
+  }
+
   const socketToCache = getSocket('cache');
 
   logger.debug({ message: 'Generating session token' });
@@ -27,22 +41,17 @@ export async function startSession(
   logger.debug({ message: 'Storing session token in cache' });
 
   const sessionData: ISessionData = {
-    userEmail: `${args.userEntity.email}`,
+    userID: `${args.userEntity.id}`,
     createdAt: new Date(),
   };
 
-  if (! await socketCacheStoreObjectIfNotExists({
-    socket: socketToCache,
+  await mqCacheStoreObjectIfNotExists({
+    mqChannel: channel,
     payload: {
       key: sessionTokenPersistKey,
       value: sessionData,
     }
-  })) {
-    return(Promise.reject(Error(
-      'Failed to store the session token for the email ' +
-      `"${args.userEntity.email}"`
-    )));
-  }
+  });
 
   const userAccountConfig = await socketCacheGetObject({
     socket: socketToCache,
@@ -53,8 +62,8 @@ export async function startSession(
 
   logger.debug({ message: 'Setting expire to session token' });
 
-  socketCacheExpireKey({
-    socket: socketToCache,
+  mqCacheExpireKey({
+    mqChannel: channel,
     payload: {
       key: sessionTokenPersistKey,
       value: userAccountConfig.login.sessionDurationInSeconds
@@ -95,15 +104,21 @@ export async function closeSession(
 
   const sessionTokenCacheKey = sessionTokensKeyGen({ token });
 
-  socketCacheDeleteKeys({
-    socket: socketToCache,
-    payload: { keys: [ sessionTokenCacheKey ] }
-  })
-  .catch(error => {
-    logger.error({
-      message: `Failed to delete the session token "${token}", with ` +
-        `message "${error.message}"`,
-      payload: error,
+  if (channel !== undefined) {
+    mqCacheDeleteKeys({
+      mqChannel: channel,
+      payload: { keys: [ sessionTokenCacheKey ] }
+    })
+    .catch(error => {
+      logger.error({
+        message: `Failed to delete the session token "${token}", with ` +
+          `message "${error.message}"`,
+        payload: error,
+      });
     });
-  });
+  } else {
+    logger.error({
+      message: `Failed to delete the session token "${token}"`,
+    });
+  }
 }

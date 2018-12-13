@@ -94,6 +94,7 @@ services:
       args:
         - NODE_ENV=development
     depends_on:
+      - rabbitmq
       - cache
     command: nodemon -L --inspect=0.0.0.0:9229 /src/configLoader/index.js
     volumes:
@@ -109,8 +110,7 @@ services:
       - NODE_ENV=development
       - DEPLOY_STAGE=local
       - SLEEP_MS=${CONFIGLOADER_SLEEP_MS}
-      - CACHE_HOST=${CACHE_SOCKET_SERVER_HOST}
-      - CACHE_PORT=${CACHE_SOCKET_SERVER_PORT}
+      - QUEUE_CON_URL=amqp://${RABBITMQ_APP_USER}:${RABBITMQ_APP_PASS}@${RABBITMQ_HOST}:${RABBITMQ_PORT}
 
   mailer:
     init: true
@@ -154,6 +154,7 @@ services:
         - NODE_ENV=development
     depends_on:
       - redis
+      - rabbitmq
     ports:
       - "${CACHE_SOCKET_SERVER_PORT}:${CACHE_SOCKET_SERVER_PORT}"
     command: nodemon -L --inspect=0.0.0.0:9229 /src/cache/index.js
@@ -169,6 +170,7 @@ services:
       - NODE_ENV=development
       - DEPLOY_STAGE=local
       - SOCKET_SERVER_PORT=${CACHE_SOCKET_SERVER_PORT}
+      - QUEUE_CON_URL=amqp://${RABBITMQ_APP_USER}:${RABBITMQ_APP_PASS}@${RABBITMQ_HOST}:${RABBITMQ_PORT}
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
 
@@ -183,6 +185,7 @@ services:
         - NODE_ENV=development
     depends_on:
       - mongodb
+      - rabbitmq
     ports:
       - "${DB_SOCKET_SERVER_PORT}:${DB_SOCKET_SERVER_PORT}"
     command: nodemon -L --inspect=0.0.0.0:9229 /src/db/index.js
@@ -200,6 +203,7 @@ services:
       - NODE_ENV=development
       - DEPLOY_STAGE=local
       - SOCKET_SERVER_PORT=${DB_SOCKET_SERVER_PORT}
+      - QUEUE_CON_URL=amqp://${RABBITMQ_APP_USER}:${RABBITMQ_APP_PASS}@${RABBITMQ_HOST}:${RABBITMQ_PORT}
       - DB_CONNECT_URL=mongodb://${MONGO_DB_USER}:${MONGO_DB_PW}@${MONGO_HOST}:${MONGO_PORT}/${MONGO_DB_NAME}?authMechanism=${MONGO_DB_AUTH_METHOD}
       - DB_MIGRATION_CONNECT_URL=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@${MONGO_HOST}:${MONGO_PORT}/admin?authMechanism=${MONGO_DB_AUTH_METHOD}
       - MONGO_DB_NAME=${MONGO_DB_NAME}

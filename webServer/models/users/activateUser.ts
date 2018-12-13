@@ -8,7 +8,7 @@ import {
 import { getSocket } from '../../../sharedLibs/utils/socketConnection';
 import { channel } from '../../../sharedLibs/utils/queue';
 import {
-  socketCacheGetObject, socketCacheDeleteKeys
+  socketCacheGetObject, mqCacheDeleteKeys
 } from '../../../sharedLibs/utils/cacheEventDispatchers';
 import {
   socketDbInsertOne
@@ -64,17 +64,24 @@ export default async function activateUser(
     },
   });
 
-  socketCacheDeleteKeys({
-    socket: socketToCache,
-    payload: { keys: [ userActivationKey ] }
-  })
-  .catch(error => {
+  if (channel !== undefined) {
+    mqCacheDeleteKeys({
+      mqChannel: channel,
+      payload: { keys: [ userActivationKey ] }
+    })
+    .catch(error => {
+      logger.error({
+        message: 'Failed to delete the user pending activation data for the ' +
+          `email address ${args.email}, with message "${error.message}"`,
+        payload: error,
+      });
+    });
+  } else {
     logger.error({
       message: 'Failed to delete the user pending activation data for the ' +
-        `email address ${args.email}, with message "${error.message}"`,
-      payload: error,
+        `email address ${args.email}`,
     });
-  });
+  }
 
   (socketCacheGetObject({
     socket: socketToCache,

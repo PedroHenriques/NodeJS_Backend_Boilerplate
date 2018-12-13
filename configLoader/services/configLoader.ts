@@ -3,10 +3,10 @@ import {
   getFileStats, parseJsonFile
 } from '../../sharedLibs/utils/fileHandlers';
 import * as logger from '../../sharedLibs/services/logger';
-import { getSocket } from '../../sharedLibs/utils/socketConnection';
 import {
-  socketCacheStoreObject
+  mqCacheStoreObject
 } from '../../sharedLibs/utils/cacheEventDispatchers';
+import { channel } from '../../sharedLibs/utils/queue';
 import {
   IFilesToWatch, IFileLoaderArgs, IFileTypeHandlers
 } from '../interfaces/services';
@@ -24,6 +24,13 @@ export default function configLoader(args: IFileLoaderArgs) {
 
     Object.getOwnPropertyNames(filesToWatch).forEach(async key => {
       try {
+        if (channel === undefined) {
+          throw new Error(
+            'Trying to dispatch event to queue but no channel with the ' +
+            'message queue is created'
+          );
+        }
+
         const stats = await getFileStats(filesToWatch[key].path);
 
         const fileModTime = stats.mtimeMs;
@@ -55,8 +62,8 @@ export default function configLoader(args: IFileLoaderArgs) {
         );
         if (fileContent === undefined) { return; }
 
-        await socketCacheStoreObject({
-          socket: getSocket('cache'),
+        await mqCacheStoreObject({
+          mqChannel: channel,
           payload: {
             key: filesToWatch[key].persistKey,
             value: fileContent,

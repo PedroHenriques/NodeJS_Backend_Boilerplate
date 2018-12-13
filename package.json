@@ -10,6 +10,7 @@
   "private": true,
   "main": "./dist/webServer/index.js",
   "scripts": {
+    "test": "mocha",
     "build": "npm run tsc",
     "tsc": "tsc -p ./tsconfig.json",
     "lint": "tslint -c ./tslint.json -p ./tsconfig.json",

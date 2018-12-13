@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.2.0] - 2018-12-13
+### Added
+- Unit tests to the `cache` service
+- Documentation regarding the data transformations done by the `db` service to isolate the application code from the DB specific syntax
+
+### Changed
+- Added logic to the `db` service to process MongoDB's query/filter and response objects, to isolate the application from its specific syntax features  
+EX: the application can provide a resource ID in a property named `id`, that the abstraction layer will move it to the `_id` property expected by MongoDB
+- Changed the events dispatched to the `cache` service to use the message queue for most operations, but keeping the 'get' operations over socket events
+
 ## [2.1.0] - 2018-11-28
 ### Changed
 - updated npm dependencies to latest version (mongodb, nodemailer, @types/node, @types/redis, node-fetch, nodemon)

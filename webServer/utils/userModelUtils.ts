@@ -1,12 +1,12 @@
 'use strict';
-import { getSocket } from '../../sharedLibs/utils/socketConnection';
 import * as logger from '../../sharedLibs/services/logger';
 import {
   usersPendingActivationKeyGen, passwordsPendingResetKeyGen
 } from '../../sharedLibs/utils/cacheKeyGenerator';
 import {
-  socketCacheStoreObject, socketCacheExpireKey
+  mqCacheStoreObject, mqCacheExpireKey
 } from '../../sharedLibs/utils/cacheEventDispatchers';
+import { channel } from '../../sharedLibs/utils/queue';
 import { IUsersPendingActivation } from '../interfaces/data';
 
 export async function storePendingActivationUser(
@@ -14,7 +14,12 @@ export async function storePendingActivationUser(
     email: string, token: string, expire: number, pwHash: string, name: string
   }
 ): Promise<void> {
-  const socketToCache = getSocket('cache');
+  if (channel === undefined) {
+    return(Promise.reject(new Error(
+      'Trying to dispatch event to queue but no channel with the ' +
+      'message queue is created'
+    )));
+  }
 
   const persistKey = usersPendingActivationKeyGen({ email: args.email });
 
@@ -24,16 +29,16 @@ export async function storePendingActivationUser(
     name: args.name,
   };
 
-  await socketCacheStoreObject({
-    socket: socketToCache,
+  await mqCacheStoreObject({
+    mqChannel: channel,
     payload: {
       key: persistKey,
       value: data,
     },
   });
 
-  socketCacheExpireKey({
-    socket: socketToCache,
+  mqCacheExpireKey({
+    mqChannel: channel,
     payload: {
       key: persistKey,
       value: args.expire,
@@ -51,20 +56,25 @@ export async function storePendingActivationUser(
 export async function storePendingPasswordReset(
   args: { email: string, token: string, expire: number }
 ): Promise<void> {
-  const socketToCache = getSocket('cache');
+  if (channel === undefined) {
+    return(Promise.reject(new Error(
+      'Trying to dispatch event to queue but no channel with the ' +
+      'message queue is created'
+    )));
+  }
 
   const persistKey = passwordsPendingResetKeyGen({ email: args.email });
 
-  await socketCacheStoreObject({
-    socket: socketToCache,
+  await mqCacheStoreObject({
+    mqChannel: channel,
     payload: {
       key: persistKey,
       value: { token: args.token },
     },
   });
 
-  socketCacheExpireKey({
-    socket: socketToCache,
+  mqCacheExpireKey({
+    mqChannel: channel,
     payload: {
       key: persistKey,
       value: args.expire,

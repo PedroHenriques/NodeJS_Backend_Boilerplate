@@ -78,3 +78,12 @@ If a callback is provided, it will be called with the document, in its state aft
 The recommended way to dispatch events to this service is to use the available **event dispatchers** for the DB related events.  
 
 Theses functions are located in the `sharedLibs/utils/dbEventDispatchers.ts` file, which should be available to all services.
+
+## Syntax Adjustments
+
+MongoDB has a syntax with a few specific properties, that differ it from other databases, specifically from MySQL based implementations.  
+
+For example, MongoDB's default `ID` property in documents is called `_id`, while in MySQL databases it is `id`.  
+
+In order to isolate the application code from these specific database implementations, this service has a utilitary module that will adjust the objects received from the application and sent to the application into MySQL like standards.  
+The utilitary functions are stored in the `db/utils/mongo.ts` file, and are used by the `db/services/db.ts` module.

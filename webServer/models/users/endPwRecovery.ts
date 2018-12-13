@@ -8,7 +8,7 @@ import {
 import { getSocket } from '../../../sharedLibs/utils/socketConnection';
 import { channel } from '../../../sharedLibs/utils/queue';
 import {
-  socketCacheGetObject, socketCacheDeleteKeys
+  socketCacheGetObject, mqCacheDeleteKeys
 } from '../../../sharedLibs/utils/cacheEventDispatchers';
 import {
   mqMailerSendEmail
@@ -50,17 +50,24 @@ export default async function endPwRecovery(
     }
   });
 
-  socketCacheDeleteKeys({
-    socket: socketToCache,
-    payload: { keys: [ pwResetKey ] }
-  })
-  .catch(error => {
+  if (channel !== undefined) {
+    mqCacheDeleteKeys({
+      mqChannel: channel,
+      payload: { keys: [ pwResetKey ] }
+    })
+    .catch(error => {
+      logger.error({
+        message: 'Failed to delete the password pending reset data for the ' +
+          `email address ${args.email}, with message "${error.message}"`,
+        payload: error,
+      });
+    });
+  } else {
     logger.error({
       message: 'Failed to delete the password pending reset data for the ' +
-        `email address ${args.email}, with message "${error.message}"`,
-      payload: error,
+        `email address ${args.email}`,
     });
-  });
+  }
 
   (socketCacheGetObject({
     socket: socketToCache,

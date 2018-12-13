@@ -9,7 +9,7 @@ import {
   userAccountConfigKeyGen, sessionTokensKeyGen
 } from '../../sharedLibs/utils/cacheKeyGenerator';
 import * as logger from '../../sharedLibs/services/logger';
-import getUserByEmail from '../models/users/getUserByEmail';
+import getUserById from '../models/users/getUserById';
 import { getCookie, clearCookie } from '../../sharedLibs/utils/cookieUtils';
 import { IUserAccountConfig, ISessionData } from '../interfaces/data';
 
@@ -39,7 +39,7 @@ export default async function session(
     }) as ISessionData;
 
     if (Object.getOwnPropertyNames(sessionData).length > 0) {
-      const userData = await getUserByEmail({ email: sessionData.userEmail });
+      const userData = await getUserById({ id: sessionData.userID });
 
       if (
         Object.getOwnPropertyNames(userData).length === 0 ||
@@ -57,7 +57,7 @@ export default async function session(
           .json({ error: 'Invalid credentials' })
         );
       } else {
-        req.session = { userEmail: sessionData.userEmail };
+        req.session = { userID: sessionData.userID };
 
         logger.debug({ message: 'Added session data to Request' });
       }

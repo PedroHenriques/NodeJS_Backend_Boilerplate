@@ -1,5 +1,6 @@
 'use strict';
 import { connect, MongoClient, Db } from 'mongodb';
+import * as mongoUtils from '../utils/mongo';
 import * as logger from '../../sharedLibs/services/logger';
 
 const connectURL: string = process.env.DB_CONNECT_URL || '';
@@ -30,23 +31,32 @@ export async function insertOne(
 }
 
 export async function findOne(
-  args: { collection: string, query: Object }
+  args: { collection: string, query: { [key: string]: any } }
 ): Promise<Object | null> {
+  const query = mongoUtils.prepareQuery(args.query);
+
   const collection = db.collection(args.collection);
-  const findResult = await collection.findOne(args.query);
-  return(findResult);
+  const findResult = await collection.findOne(query);
+  return(mongoUtils.prepareResult(findResult));
 }
 
 export async function findOneUpdate(
-  args: { collection: string, filter: Object, update: Object }
+  args: { collection: string, filter: { [key: string]: any }, update: Object }
 ): Promise<Object> {
+  const filter = mongoUtils.prepareQuery(args.filter);
+
   const collection = db.collection(args.collection);
   const modifyResult = await collection.findOneAndUpdate(
-    args.filter, args.update, { returnOriginal: false }
+    filter, args.update, { returnOriginal: false }
   );
   if (modifyResult.ok !== 1) {
     return(Promise.reject(modifyResult.lastErrorObject));
   }
 
-  return(modifyResult.value);
+  const returnValue = mongoUtils.prepareResult(modifyResult.value);
+  if (returnValue === null) {
+    return({});
+  } else {
+    return(returnValue);
+  }
 }

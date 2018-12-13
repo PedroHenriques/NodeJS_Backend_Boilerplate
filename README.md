@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/PedroHenriques/NodeJS_Backend_Boilerplate.svg?branch=master)](https://travis-ci.org/PedroHenriques/NodeJS_Backend_Boilerplate)
+
 # Boilerplate for a services based backend application in NodeJS
 
 ## The core technologies used are:

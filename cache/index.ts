@@ -1,14 +1,8 @@
 'use strict';
+import { createClient } from 'redis';
 import { ConsumeMessage } from 'amqplib';
-import cacheGetValueHandler from './handlers/cacheGetValue';
-import cacheStoreValueHandler from './handlers/cacheStoreValue';
-import cacheGetObjectHandler from './handlers/cacheGetObject';
-import cacheStoreObjectHandler from './handlers/cacheStoreObject';
-import cacheStoreObjectIfNotExistsHandler from
-  './handlers/cacheStoreObjectIfNotExists';
-import cacheExpireKeyHandler from './handlers/cacheExpireKey';
-import cacheDeleteKeysHandler from './handlers/cacheDeleteKeys';
-import cacheKeysExistHandler from './handlers/cacheKeysExist';
+import cacheFactory from './services/cache';
+import handlerFactory from './handlers/index';
 import createSocketServer from '../sharedLibs/utils/socketServer';
 import * as Events from '../sharedLibs/utils/eventTypes';
 import {
@@ -17,19 +11,28 @@ import {
 import { IMQEventMessage } from '../sharedLibs/interfaces/events';
 import * as IEvents from '../sharedLibs/interfaces/cacheEvents';
 
+const redisConOptions = {
+  host: process.env.REDIS_HOST || 'redis',
+  port: parseInt(process.env.REDIS_PORT || '6379', 10),
+};
+const redisClient = createClient(redisConOptions);
+
+const cache = cacheFactory(redisClient);
+const handlers = handlerFactory(cache);
+
 if (process.env.SOCKET_SERVER_PORT !== undefined) {
   const socketHandler = (socket: SocketIO.Socket) => {
-    socket.on(Events.CACHE_GET_VALUE, cacheGetValueHandler);
-    socket.on(Events.CACHE_STORE_VALUE, cacheStoreValueHandler);
-    socket.on(Events.CACHE_GET_OBJECT, cacheGetObjectHandler);
-    socket.on(Events.CACHE_STORE_OBJECT, cacheStoreObjectHandler);
+    socket.on(Events.CACHE_GET_VALUE, handlers.cacheGetValueHandler);
+    socket.on(Events.CACHE_STORE_VALUE, handlers.cacheStoreValueHandler);
+    socket.on(Events.CACHE_GET_OBJECT, handlers.cacheGetObjectHandler);
+    socket.on(Events.CACHE_STORE_OBJECT, handlers.cacheStoreObjectHandler);
     socket.on(
       Events.CACHE_STORE_OBJECT_IF_NX,
-      cacheStoreObjectIfNotExistsHandler
+      handlers.cacheStoreObjectIfNotExistsHandler
     );
-    socket.on(Events.CACHE_EXPIRE_KEY, cacheExpireKeyHandler);
-    socket.on(Events.CACHE_DELETE_KEYS, cacheDeleteKeysHandler);
-    socket.on(Events.CACHE_KEYS_EXIST, cacheKeysExistHandler);
+    socket.on(Events.CACHE_EXPIRE_KEY, handlers.cacheExpireKeyHandler);
+    socket.on(Events.CACHE_DELETE_KEYS, handlers.cacheDeleteKeysHandler);
+    socket.on(Events.CACHE_KEYS_EXIST, handlers.cacheKeysExistHandler);
   };
 
   createSocketServer(
@@ -49,7 +52,6 @@ if (process.env.QUEUE_CON_URL !== undefined) {
     const message = JSON.parse(
       parsePayload({ data: rawMessage.content })
     ) as IMQEventMessage;
-    if (typeof message.payload !== 'object') { return; }
 
     const cb = (error: Error | null) => {
       if (error) {
@@ -60,23 +62,23 @@ if (process.env.QUEUE_CON_URL !== undefined) {
     };
 
     if (message.type === Events.CACHE_STORE_VALUE) {
-      cacheStoreValueHandler(
+      handlers.cacheStoreValueHandler(
         (message.payload as IEvents.ICacheStoreValuePayload), cb
       );
     } else if (message.type === Events.CACHE_STORE_OBJECT) {
-      cacheStoreObjectHandler(
+      handlers.cacheStoreObjectHandler(
         (message.payload as IEvents.ICacheStoreObjectPayload), cb
       );
     } else if (message.type === Events.CACHE_STORE_OBJECT_IF_NX) {
-      cacheStoreObjectIfNotExistsHandler(
+      handlers.cacheStoreObjectIfNotExistsHandler(
         (message.payload as IEvents.ICacheStoreObjectIfNotExistsPayload), cb
       );
     } else if (message.type === Events.CACHE_EXPIRE_KEY) {
-      cacheExpireKeyHandler(
+      handlers.cacheExpireKeyHandler(
         (message.payload as IEvents.ICacheExpireKeyPayload), cb
       );
     } else if (message.type === Events.CACHE_DELETE_KEYS) {
-      cacheDeleteKeysHandler(
+      handlers.cacheDeleteKeysHandler(
         (message.payload as IEvents.ICacheDeleteKeysPayload), cb
       );
     }
