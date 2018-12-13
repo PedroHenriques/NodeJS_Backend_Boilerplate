@@ -2,5 +2,4 @@
 --full-trace
 -R min
 --timeout 30000
---watch
 --recursive
