@@ -114,7 +114,7 @@ client.login('test@test.com', 'new password');
 The application is built in several services, each in a docker container.  
 This makes it easier to scale bottleneck services, by creating replicas of those services and also makes the application modular and thus easier to maintain and modify over time.  
 
-The various services communicate via `events` with each another that trigger actions in other containers.  
+The various services communicate via `events` with each other that trigger actions in other containers.  
 These events are dispatched through `sockets` and/or `message queues`.  
 
 The socket connections support 2 way communication if needed, while the message queue is great for "fire and forget" events.  
@@ -127,10 +127,10 @@ As mentioned above, each service is in a dedicated docker container and communic
 
 These events can be sent over a `socket` or through a `message queue`.  
 
-**Sockets** allow direct two way communication between services, which permite a callback function to be provided with the event.  
+**Sockets** allow direct two way communication between services, which permit a callback function to be provided with the event.  
 This is the recommended way to handle events that expect something in return.  
 
-**Queue messages** allow for a durable event dispatching, where if the event fails to be processed it will be requeued and tryied again.  
+**Queue messages** allow for a durable event dispatching, where if the event fails to be processed it can be requeued and tryied again.  
 They are not, however, ideal at handling events that expect a callback.  
 
 The event dispatchers provided with this boilerplate make it possible to provide the same payload, in your code, for socket and message queue.  
@@ -138,7 +138,9 @@ They will make the necessary adjustments for the different systems.
 
 This also means that the handlers, in each service, that will be called on an event, should be the same regardless of how the event was dispatched (i.e. socket or messahe queue).  
 
-This boilerplate uses the message queue for email related events and sockets for cache and db related events.  
+This boilerplate uses the message queue for email related events and some cache and db events, that don't require any information as a callback.  
+Sockets are used for cache and db 'search' events, since the dispatching code is expecting data in return.  
+
 However, you can easily change this behavior by switching the socket event dispatchers with the message queue event dispatchers.
 
 ## Event Dispatchers

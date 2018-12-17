@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.2.1] - 2018-12-17
+### Added
+- Unit tests to the `configLoader` service
+### Changed
+- Versions of dependencies and devDependencies
+- Improved `README.md` file's section on event dispatchers, after changes introduced in previous versions of this boilerplate
+### Fixed
+- Typos in `README.md` file
+
 ## [2.2.0] - 2018-12-13
 ### Added
 - Unit tests to the `cache` service
