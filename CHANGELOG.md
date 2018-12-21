@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.0] - 2018-12-21
+### Added
+- Unit tests to the `db` service
+### Changed
+- Refactored the modules of the `db` service to be based on factory functions. This gives more flexibility to the modules and allows better unit test coverage.
+- Updated NPM dependencies - @types/node @types/redis tslint
+
 ## [2.2.1] - 2018-12-17
 ### Added
 - Unit tests to the `configLoader` service
